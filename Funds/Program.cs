@@ -16,6 +16,11 @@ public class Program
         var fundsCommands = new FundsCommands(dbConn);
         var rootCommand = fundsCommands.Total();
 
+        var outgoingsCommands = new OutgoingsCommands(dbConn);
+        var listOutgoingsCommand = outgoingsCommands.List();
+        listOutgoingsCommand.AddCommand(outgoingsCommands.Add());
+        rootCommand.AddCommand(listOutgoingsCommand);
+
         rootCommand.Invoke(args);
     }
 }
