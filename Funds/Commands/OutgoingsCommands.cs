@@ -58,9 +58,9 @@ namespace Funds.Commands
             addCommand.AddOption(dateOption);
             addCommand.AddOption(fundOption);
 
-            addCommand.SetHandler((string name, decimal amount, string date, string fundId) =>
+            addCommand.SetHandler((string name, decimal amount, string date, string fundIdentifier) =>
             {
-                var response = new Outgoings(_dbConnection).AddOutgoing(name, amount, date, fundId);
+                var response = new Outgoings(_dbConnection).AddOutgoing(name, amount, date, fundIdentifier);
                 if (!string.IsNullOrWhiteSpace(response))
                 {
                     Console.WriteLine(response);

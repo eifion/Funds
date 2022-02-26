@@ -1,4 +1,5 @@
 using Dapper;
+using LibFunds.Extensions;
 using System.Data;
 using Microsoft.Data.Sqlite;
 
@@ -13,7 +14,7 @@ public class Outgoings
         _dbConnection = dbConnection;
     }
 
-    public string AddOutgoing(string title, decimal amount, string dateValue, string fundIdentifier)
+    public string AddOutgoing(string title, decimal amount, string dateValue, string fundIdentifierValue)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -25,35 +26,27 @@ public class Outgoings
             return "Amount cannot be negative";
         }
 
-        DateOnly date;
-        if (string.IsNullOrWhiteSpace(dateValue) || string.Equals(dateValue, "today", StringComparison.InvariantCultureIgnoreCase))
-        {
-            date = DateOnly.FromDateTime(DateTime.Today);
-        }
-        else if (string.Equals(dateValue, "yesterday", StringComparison.InvariantCultureIgnoreCase))
-        {
-            date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
-        }
-        else if (!DateOnly.TryParseExact(dateValue, "yyyy-MM-dd", out date))
+        if (!dateValue.TryParseDate(out DateOnly date))
         {
             return "Date supplied is not valid. Should be in format yyyy-MM-dd";
         }
 
         var funds = new Funds(_dbConnection);
         // If no fundId supplied so assume the default fund.
-        string? identifier = string.IsNullOrWhiteSpace(fundIdentifier) ? funds.GetDefaultFund() : funds.GetFundByIdentifier(fundIdentifier);
+        string? fundIdentifier = string.IsNullOrWhiteSpace(fundIdentifierValue) ? funds.GetDefaultFund() : funds.GetFundByIdentifier(fundIdentifierValue);
 
         // If no fund found bail out.
-        if (string.IsNullOrWhiteSpace(identifier))
+        if (string.IsNullOrWhiteSpace(fundIdentifier))
         {
-            return $"Cannot find fund {fundIdentifier}";
+            return $"Cannot find fund {fundIdentifierValue}";
         }
 
         using IDbConnection conn = new SqliteConnection(_dbConnection);
         try
         {
-            var model = new NewOutgoingModel(title, amount, date, identifier);
-            conn.Query("INSERT INTO Outgoings(title, amount, date, fund_identifier) VALUES(@Title, @Amount, @Date, @FundIdentifier);", model);
+            var newOutgoing = new NewOutgoingModel(title, amount, date, fundIdentifier);
+            conn.Query(@"INSERT INTO Outgoings(title, amount, date, fund_identifier) 
+                         VALUES(@Title, @Amount, @Date, @FundIdentifier);", newOutgoing);
             return string.Empty;
         }
         catch (Exception ex)

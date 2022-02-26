@@ -25,6 +25,7 @@ public class Program
         // Incomings commands.
         var incomingsCommands = new IncomingsCommands(dbConn);
         var listIncomingsCommand = incomingsCommands.List();
+        listIncomingsCommand.AddCommand(incomingsCommands.Add());
         rootCommand.AddCommand(listIncomingsCommand);
 
         rootCommand.Invoke(args);
