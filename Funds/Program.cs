@@ -16,6 +16,12 @@ public class Program
         var fundsCommands = new FundsCommands(dbConn);
         var rootCommand = fundsCommands.Total();
 
+        // Database commands.
+        var showDatabaseCommand = DatabaseCommands.Show();
+        var createDatabaseCommand = DatabaseCommands.Create();
+        showDatabaseCommand.AddCommand(createDatabaseCommand);
+        rootCommand.AddCommand(showDatabaseCommand);
+
         // Outgoings commands.
         var outgoingsCommands = new OutgoingsCommands(dbConn);
         var listOutgoingsCommand = outgoingsCommands.List();
